@@ -1,49 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-  <title>Bingo</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Bingo Speler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>🎴 Bingo</h1>
-<h2 id="current">Wachten...</h2>
+
+<div>
+  <button onclick="setTheme('dark')">🌙 Dark</button>
+  <button onclick="setTheme('neon')">✨ Neon</button>
+</div>
+
+<h2 id="current">Wachten op nummer…</h2>
 
 <div class="board" id="board"></div>
-<h2 id="bingo"></h2>
+<h2 id="bingoText"></h2>
 
 <audio id="ding" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 
 <script src="bingo.js"></script>
 <script>
-const host = new URLSearchParams(location.search).get("host");
+const hostId = new URLSearchParams(location.search).get("host");
+const name = prompt("Wat is je naam?");
 const peer = new Peer();
+let conn;
 const board = document.getElementById("board");
 const cells = [];
 
-generateCard().forEach(n => {
+createCard().forEach(n => {
   const d = document.createElement("div");
   d.className = "cell";
   d.textContent = n;
+
   d.onclick = () => {
     d.classList.toggle("marked");
     if (checkBingo(cells)) {
-      document.getElementById("bingo").innerHTML = "🏆 BINGO!";
-      document.getElementById("bingo").className = "bingo";
+      document.getElementById("bingoText").innerText = "🏆 BINGO!";
+      document.getElementById("bingoText").className = "bingo";
+      conn.send({ type: "bingo", name });
     }
   };
+
   board.appendChild(d);
   cells.push(d);
 });
 
 peer.on("open", () => {
-  const c = peer.connect(host);
-  c.on("data", n => {
-    document.getElementById("current").innerText = "Nummer: " + n;
-    document.getElementById("ding").play();
+  conn = peer.connect(hostId);
+
+  conn.on("data", msg => {
+    if (msg.type === "number") {
+      document.getElementById("current").innerText =
+        "Nummer: " + msg.value;
+      document.getElementById("ding").play();
+    }
+
+    if (msg.type === "reset") {
+      location.reload();
+    }
   });
 });
+
+function setTheme(theme) {
+  document.body.className = theme;
+}
 </script>
 
 </body>
