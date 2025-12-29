@@ -7,28 +7,25 @@
 <body>
 
 <h1>🎱 Bingo Host</h1>
-<p id="hostId">Loading...</p>
+<p id="link"></p>
 <button onclick="draw()">Trek nummer</button>
-<h2 id="number">-</h2>
+<h2 id="num">-</h2>
 
 <script>
 const peer = new Peer();
-let connections = [];
+let conns = [];
 
 peer.on("open", id => {
-  document.getElementById("hostId").innerHTML =
-    `Invite link:<br>
-     <b>${location.origin}/player.html?host=${id}</b>`;
+  document.getElementById("link").innerHTML =
+    `Invite link:<br><b>${location.origin}/player.html?host=${id}</b>`;
 });
 
-peer.on("connection", conn => {
-  connections.push(conn);
-});
+peer.on("connection", c => conns.push(c));
 
 function draw() {
   const n = Math.floor(Math.random() * 75) + 1;
-  document.getElementById("number").innerText = n;
-  connections.forEach(c => c.send(n));
+  document.getElementById("num").innerText = n;
+  conns.forEach(c => c.send(n));
 }
 </script>
 
