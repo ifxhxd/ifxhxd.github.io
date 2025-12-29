@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bingo Player</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<h1>🎯 Bingo Speler</h1>
+<h2 id="number">Wachten op nummer...</h2>
+
+<script>
+const hostId = new URLSearchParams(location.search).get("host");
+const peer = new Peer();
+
+peer.on("open", () => {
+  const conn = peer.connect(hostId);
+  conn.on("data", n => {
+    document.getElementById("number").innerText = n;
+  });
+});
+</script>
+
+</body>
+</html>
