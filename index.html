@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bingo Host</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<h1>🎱 Bingo Host</h1>
+<p id="hostId">Loading...</p>
+<button onclick="draw()">Trek nummer</button>
+<h2 id="number">-</h2>
+
+<script>
+const peer = new Peer();
+let connections = [];
+
+peer.on("open", id => {
+  document.getElementById("hostId").innerHTML =
+    `Invite link:<br>
+     <b>${location.origin}/player.html?host=${id}</b>`;
+});
+
+peer.on("connection", conn => {
+  connections.push(conn);
+});
+
+function draw() {
+  const n = Math.floor(Math.random() * 75) + 1;
+  document.getElementById("number").innerText = n;
+  connections.forEach(c => c.send(n));
+}
+</script>
+
+</body>
+</html>
