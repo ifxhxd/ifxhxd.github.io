@@ -1,22 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bingo Player</title>
+  <title>Bingo</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-<h1>🎯 Bingo Speler</h1>
-<h2 id="number">Wachten op nummer...</h2>
+<h1>🎴 Bingo</h1>
+<h2 id="current">Wachten...</h2>
 
+<div class="board" id="board"></div>
+<h2 id="bingo"></h2>
+
+<audio id="ding" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+
+<script src="bingo.js"></script>
 <script>
-const hostId = new URLSearchParams(location.search).get("host");
+const host = new URLSearchParams(location.search).get("host");
 const peer = new Peer();
+const board = document.getElementById("board");
+const cells = [];
+
+generateCard().forEach(n => {
+  const d = document.createElement("div");
+  d.className = "cell";
+  d.textContent = n;
+  d.onclick = () => {
+    d.classList.toggle("marked");
+    if (checkBingo(cells)) {
+      document.getElementById("bingo").innerHTML = "🏆 BINGO!";
+      document.getElementById("bingo").className = "bingo";
+    }
+  };
+  board.appendChild(d);
+  cells.push(d);
+});
 
 peer.on("open", () => {
-  const conn = peer.connect(hostId);
-  conn.on("data", n => {
-    document.getElementById("number").innerText = n;
+  const c = peer.connect(host);
+  c.on("data", n => {
+    document.getElementById("current").innerText = "Nummer: " + n;
+    document.getElementById("ding").play();
   });
 });
 </script>
