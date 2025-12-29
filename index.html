@@ -1,31 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
+  <meta charset="UTF-8">
   <title>Bingo Host</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>🎱 Bingo Host</h1>
-<p id="link"></p>
-<button onclick="draw()">Trek nummer</button>
-<h2 id="num">-</h2>
+<p id="invite">Verbinden...</p>
+
+<button onclick="draw()">🎲 Trek nummer</button>
+<button onclick="resetGame()">🔄 Reset</button>
+
+<h2 id="number">-</h2>
+
+<h3>🏆 Winnaars</h3>
+<ul id="winners"></ul>
 
 <script>
 const peer = new Peer();
-let conns = [];
+let connections = [];
+let drawnNumbers = [];
 
 peer.on("open", id => {
-  document.getElementById("link").innerHTML =
+  document.getElementById("invite").innerHTML =
     `Invite link:<br><b>${location.origin}/player.html?host=${id}</b>`;
 });
 
-peer.on("connection", c => conns.push(c));
+peer.on("connection", conn => {
+  connections.push(conn);
+
+  conn.on("data", msg => {
+    if (msg.type === "bingo") {
+      const li = document.createElement("li");
+      li.textContent = "🏆 " + msg.name + " heeft BINGO!";
+      document.getElementById("winners").appendChild(li);
+    }
+  });
+});
 
 function draw() {
-  const n = Math.floor(Math.random() * 75) + 1;
-  document.getElementById("num").innerText = n;
-  conns.forEach(c => c.send(n));
+  if (drawnNumbers.length >= 75) {
+    alert("Alle nummers zijn al getrokken!");
+    return;
+  }
+
+  let n;
+  do {
+    n = Math.floor(Math.random() * 75) + 1;
+  } while (drawnNumbers.includes(n));
+
+  drawnNumbers.push(n);
+  document.getElementById("number").innerText = n;
+
+  connections.forEach(c => {
+    c.send({ type: "number", value: n });
+  });
+}
+
+function resetGame() {
+  drawnNumbers = [];
+  document.getElementById("number").innerText = "-";
+  document.getElementById("winners").innerHTML = "";
+
+  connections.forEach(c => {
+    c.send({ type: "reset" });
+  });
 }
 </script>
 
